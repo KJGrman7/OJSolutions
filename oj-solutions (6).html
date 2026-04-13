@@ -1,0 +1,1475 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OJ Solutions — M&A Execution & Enterprise AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --ink: #0e0e0e;
+    --ink-mid: #3a3a3a;
+    --ink-light: #888;
+    --rule: #d8d4ce;
+    --warm-bg: #f4f1ec;
+    --white: #fafaf8;
+    --accent: #1a3a2a;
+    --accent-light: #2d5c42;
+    --gold: #b8975a;
+    --gold-light: #d4b07a;
+    --serif: 'Libre Baskerville', Georgia, serif;
+    --sans: 'DM Sans', system-ui, sans-serif;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; font-size: 16px; }
+  body { font-family: var(--sans); background: var(--white); color: var(--ink); line-height: 1.6; -webkit-font-smoothing: antialiased; }
+
+  /* ── NAV ── */
+  nav {
+    position: fixed; top: 0; left: 0; right: 0; z-index: 100;
+    background: rgba(2, 12, 6, 0.82);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+    border-bottom: 1px solid rgba(184,151,90,0.12);
+    display: flex; align-items: center; justify-content: space-between;
+    padding: 0 2.5rem; height: 64px;
+  }
+
+  /* Logo */
+  .nav-logo {
+    font-family: var(--serif); font-size: 1.12rem; font-weight: 700;
+    color: var(--white); letter-spacing: 0.02em; cursor: pointer;
+    flex-shrink: 0;
+    text-shadow: 0 0 20px rgba(255,255,255,0.15);
+  }
+  .nav-logo span { color: var(--gold); }
+
+  /* Pill nav container */
+  .nav-pill-wrap {
+    position: relative;
+    display: flex;
+    align-items: center;
+    list-style: none;
+    background: rgba(255,255,255,0.04);
+    border: 1px solid rgba(255,255,255,0.1);
+    border-radius: 9999px;
+    padding: 4px;
+    gap: 0;
+  }
+
+  /* Each tab */
+  .nav-tab {
+    position: relative;
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    padding: 0.35rem 1.05rem;
+    font-family: var(--sans);
+    font-size: 0.72rem;
+    font-weight: 500;
+    letter-spacing: 0.09em;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.65);
+    cursor: pointer;
+    border-radius: 9999px;
+    white-space: nowrap;
+    transition: color 0.18s ease;
+    user-select: none;
+    /* mix-blend-difference makes text invert over the pill */
+    mix-blend-mode: difference;
+  }
+  .nav-tab:hover { color: rgba(255,255,255,0.95); }
+
+  /* The sliding pill — positioned by JS */
+  .nav-pill-cursor {
+    position: absolute;
+    top: 4px;
+    left: 0;
+    height: calc(100% - 8px);
+    border-radius: 9999px;
+    background: var(--gold);
+    z-index: 1;
+    pointer-events: none;
+    transition: left 0.22s cubic-bezier(0.4,0,0.2,1),
+                width 0.22s cubic-bezier(0.4,0,0.2,1),
+                opacity 0.18s ease;
+    opacity: 0;
+    box-shadow: 0 0 12px rgba(184,151,90,0.4);
+  }
+
+  /* CTA button */
+  .nav-cta {
+    font-size: 0.72rem; font-weight: 600; letter-spacing: 0.09em;
+    text-transform: uppercase; padding: 0.42rem 1.3rem;
+    background: var(--gold); color: var(--white);
+    border-radius: 9999px;
+    cursor: pointer; transition: background 0.2s, box-shadow 0.2s;
+    white-space: nowrap; flex-shrink: 0;
+    box-shadow: 0 0 16px rgba(184,151,90,0.3);
+  }
+  .nav-cta:hover { background: var(--gold-light); box-shadow: 0 0 22px rgba(184,151,90,0.5); }
+
+  @media (max-width: 900px) {
+    .nav-pill-wrap { display: none; }
+    nav { padding: 0 1.25rem; }
+  }
+
+  /* TOPBAR */
+  .topbar { background: var(--accent); color: var(--gold-light); text-align: center; font-size: 0.75rem; letter-spacing: 0.1em; text-transform: uppercase; padding: 0.5rem 1rem; margin-top: 64px; }
+
+  /* PAGES */
+  .page { display: none; }
+  .page.active { display: block; }
+
+  /* UTILS */
+  .container { max-width: 1120px; margin: 0 auto; padding: 0 2rem; }
+  .section { padding: 6rem 0; }
+  .section--dark { background: var(--ink); color: var(--white); }
+  .section--warm { background: var(--warm-bg); }
+  .section--accent { background: var(--accent); color: var(--white); }
+  hr.rule { border: none; border-top: 1px solid var(--rule); margin: 0; }
+
+  .eyebrow { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.14em; text-transform: uppercase; color: var(--gold); margin-bottom: 1.2rem; }
+  .section--dark .eyebrow, .section--accent .eyebrow { color: var(--gold-light); }
+
+  h1, h2, h3 { font-family: var(--serif); font-weight: 700; line-height: 1.15; }
+  h1 { font-size: clamp(2.4rem, 5vw, 4rem); }
+  h2 { font-size: clamp(1.8rem, 3.5vw, 2.8rem); }
+  h3 { font-size: 1.35rem; }
+  p { color: var(--ink-mid); line-height: 1.75; }
+  .section--dark p, .section--accent p { color: rgba(255,255,255,0.72); }
+  .lead { font-size: 1.18rem; line-height: 1.7; color: var(--ink-mid); max-width: 640px; }
+
+  /* BUTTONS */
+  .btn { display: inline-block; font-family: var(--sans); font-size: 0.78rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; text-decoration: none; padding: 0.9rem 2rem; transition: all 0.2s; cursor: pointer; border: none; }
+  .btn-primary { background: var(--accent); color: var(--white); }
+  .btn-primary:hover { background: var(--accent-light); }
+  .btn-secondary { background: transparent; color: var(--ink); border: 1px solid var(--ink); }
+  .btn-secondary:hover { background: var(--ink); color: var(--white); }
+  .btn-gold { background: var(--gold); color: var(--white); }
+  .btn-gold:hover { background: var(--gold-light); }
+  .btn-outline-white { background: transparent; color: var(--white); border: 1px solid rgba(255,255,255,0.5); }
+  .btn-outline-white:hover { background: rgba(255,255,255,0.12); }
+  .btn-group { display: flex; gap: 1rem; flex-wrap: wrap; margin-top: 2rem; }
+
+  /* HERO */
+  .hero { padding: 7rem 0 5rem; border-bottom: 1px solid var(--rule); position: relative; overflow: hidden; }
+  .hero::before { content: ''; position: absolute; right: -200px; top: -100px; width: 600px; height: 600px; background: radial-gradient(circle, rgba(184,151,90,0.06) 0%, transparent 70%); pointer-events: none; }
+  .hero-inner { max-width: 760px; }
+  .hero h1 { margin-bottom: 1.5rem; }
+  .hero .lead { margin-bottom: 2rem; }
+  .hero-support { font-size: 0.82rem; color: var(--ink-light); font-style: italic; margin-top: 1rem; }
+
+  /* TRUST STRIP */
+  .trust-strip { background: var(--warm-bg); border-bottom: 1px solid var(--rule); padding: 1.4rem 0; }
+  .trust-strip-inner { display: flex; flex-wrap: wrap; gap: 0 3rem; align-items: center; }
+  .trust-strip-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-light); margin-right: 1.5rem; }
+  .trust-strip-item { font-size: 0.82rem; color: var(--ink-mid); padding: 0.25rem 0 0.25rem 0.75rem; border-left: 2px solid var(--gold); }
+
+  /* CARDS */
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); }
+  .card { background: var(--white); padding: 2.5rem; transition: background 0.2s; }
+  .card:hover { background: var(--warm-bg); }
+  .card-number { font-family: var(--serif); font-size: 0.75rem; color: var(--gold); letter-spacing: 0.1em; margin-bottom: 1rem; display: block; }
+  .card h3 { margin-bottom: 0.75rem; font-size: 1.15rem; }
+  .card p { font-size: 0.9rem; }
+  .card-link { display: inline-block; margin-top: 1.5rem; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); text-decoration: none; cursor: pointer; }
+  .card-link:hover { color: var(--accent); }
+
+  /* TWO-COL */
+  .two-col { display: grid; grid-template-columns: 1fr 1fr; gap: 5rem; align-items: start; }
+
+  /* PILLARS */
+  .pillars { display: grid; grid-template-columns: repeat(3,1fr); gap: 2.5rem; }
+  .pillar { border-top: 3px solid var(--gold); padding-top: 1.5rem; }
+  .pillar h3 { margin-bottom: 0.75rem; font-size: 1.05rem; }
+  .pillar p { font-size: 0.9rem; }
+
+  /* STEPS */
+  .step { display: grid; grid-template-columns: 80px 1fr; gap: 2rem; padding: 2.5rem 0; border-bottom: 1px solid var(--rule); }
+  .step-num { font-family: var(--serif); font-size: 3rem; color: var(--gold); line-height: 1; opacity: 0.5; }
+  .step-content h3 { margin-bottom: 0.5rem; }
+  .step-outputs { display: flex; flex-wrap: wrap; gap: 0.5rem; margin-top: 1rem; }
+  .step-tag { font-size: 0.72rem; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.25rem 0.75rem; background: rgba(184,151,90,0.12); color: var(--gold); border: 1px solid rgba(184,151,90,0.3); }
+
+  /* BULLETS */
+  .bullet-list { list-style: none; margin-top: 1.5rem; }
+  .bullet-list li { display: flex; align-items: flex-start; gap: 0.75rem; padding: 0.6rem 0; border-bottom: 1px solid var(--rule); font-size: 0.92rem; color: var(--ink-mid); }
+  .section--dark .bullet-list li, .section--accent .bullet-list li { border-bottom-color: rgba(255,255,255,0.08); color: rgba(255,255,255,0.72); }
+  .bullet-list li::before { content: '—'; color: var(--gold); flex-shrink: 0; font-family: var(--serif); }
+
+  /* CASE STUDY */
+  .case-study { border: 1px solid var(--rule); padding: 3rem; position: relative; overflow: hidden; }
+  .case-study::before { content: ''; position: absolute; top: 0; left: 0; width: 4px; height: 100%; background: var(--gold); }
+  .case-study + .case-study { margin-top: 1.5rem; }
+  .case-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--ink-light); margin-bottom: 0.5rem; display: block; }
+  .case-study h3 { margin-bottom: 1.5rem; }
+  .case-cols { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 2rem; margin-top: 1.5rem; }
+  .case-col-head { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.5rem; font-family: var(--sans); }
+  .case-col p { font-size: 0.88rem; }
+
+  /* INSIGHTS */
+  .insight-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 1px; background: var(--rule); border: 1px solid var(--rule); margin-top: 3rem; }
+  .insight-card { background: var(--white); padding: 2rem; cursor: pointer; transition: background 0.2s; }
+  .insight-card:hover { background: var(--warm-bg); }
+  .insight-cat { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--gold); margin-bottom: 0.75rem; }
+  .insight-card h3 { font-size: 1rem; font-family: var(--serif); line-height: 1.35; }
+
+  /* FAQ */
+  .faq-item { border-bottom: 1px solid var(--rule); padding: 1.5rem 0; }
+  .faq-q { font-family: var(--serif); font-size: 1rem; font-weight: 700; margin-bottom: 0.5rem; }
+  .faq-a { font-size: 0.9rem; color: var(--ink-mid); }
+
+  /* FORM */
+  .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 1.25rem; }
+  .form-grid .full { grid-column: 1/-1; }
+  .form-field { display: flex; flex-direction: column; gap: 0.4rem; }
+  .form-field label { font-size: 0.75rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--ink-mid); }
+  .form-field input, .form-field select, .form-field textarea { font-family: var(--sans); font-size: 0.92rem; padding: 0.75rem 1rem; border: 1px solid var(--rule); background: var(--white); color: var(--ink); outline: none; transition: border-color 0.2s; -webkit-appearance: none; }
+  .form-field input:focus, .form-field select:focus, .form-field textarea:focus { border-color: var(--accent); }
+  .form-field textarea { resize: vertical; min-height: 120px; }
+  .form-note { font-size: 0.78rem; color: var(--ink-light); font-style: italic; margin-top: 0.75rem; }
+
+  /* CTA BAND */
+  .cta-band { padding: 5rem 0; background: var(--accent); color: var(--white); text-align: center; }
+  .cta-band h2 { color: var(--white); margin-bottom: 1rem; max-width: 700px; margin-left: auto; margin-right: auto; }
+  .cta-band p { max-width: 540px; margin: 0 auto 2rem; color: rgba(255,255,255,0.7); }
+
+  /* ABOUT */
+  .belief-block { border-left: 3px solid var(--gold); padding-left: 1.5rem; margin-bottom: 2rem; }
+  .belief-block h3 { font-size: 1.05rem; margin-bottom: 0.4rem; }
+  .belief-block p { font-size: 0.9rem; }
+
+  /* FOCUS LIST */
+  .focus-list { display: grid; grid-template-columns: 1fr 1fr; gap: 0.5rem 2rem; margin-top: 1.5rem; }
+  .focus-item { font-size: 0.88rem; padding: 0.5rem 0; border-bottom: 1px solid var(--rule); display: flex; align-items: center; gap: 0.5rem; color: var(--ink-mid); }
+  .focus-item::before { content: '→'; color: var(--gold); }
+  .focus-item-dark { border-bottom-color: rgba(255,255,255,0.1) !important; color: rgba(255,255,255,0.72) !important; }
+
+  /* SERVICE BLOCKS */
+  .service-block { border-top: 3px solid var(--gold); padding-top: 2rem; margin-bottom: 3rem; }
+  .service-label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.1em; text-transform: uppercase; color: var(--ink-light); margin-bottom: 0.5rem; }
+
+  /* FOOTER */
+  footer { background: var(--ink); color: rgba(255,255,255,0.5); padding: 4rem 0 2rem; }
+  .footer-grid { display: grid; grid-template-columns: 2fr 1fr 1fr; gap: 3rem; margin-bottom: 3rem; }
+  .footer-brand { font-family: var(--serif); font-size: 1.2rem; color: var(--white); margin-bottom: 1rem; }
+  .footer-brand span { color: var(--gold); }
+  .footer-desc { font-size: 0.85rem; line-height: 1.7; }
+  .footer-col h4 { font-family: var(--sans); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.12em; text-transform: uppercase; color: var(--white); margin-bottom: 1rem; }
+  .footer-col ul { list-style: none; }
+  .footer-col li { margin-bottom: 0.6rem; }
+  .footer-col a { font-size: 0.85rem; color: rgba(255,255,255,0.5); text-decoration: none; cursor: pointer; transition: color 0.2s; }
+  .footer-col a:hover { color: var(--gold-light); }
+  .footer-bottom { padding-top: 2rem; border-top: 1px solid rgba(255,255,255,0.08); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 1rem; }
+  .footer-closing { font-size: 0.78rem; font-style: italic; color: rgba(255,255,255,0.35); }
+
+  /* CONFIRM BOX */
+  .confirm-box { background: var(--warm-bg); border: 1px solid var(--rule); border-left: 4px solid var(--gold); padding: 2rem; margin-top: 2rem; display: none; }
+  .confirm-box.show { display: block; }
+
+  /* ANIMATE */
+  @keyframes fadeUp { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:translateY(0); } }
+  .page.active .hero-inner { animation: fadeUp 0.6s ease both; }
+
+  /* ── LAMP HERO ── */
+
+  .lamp-hero {
+    position: relative;
+    width: 100%;
+    /* Tall enough to contain bar + brand name + generous glow space */
+    min-height: 52vh;
+    background: #020c06;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    overflow: hidden;
+  }
+
+  /* Invisible stage for all light FX */
+  .lamp-stage {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 5;
+  }
+
+  /* ── THE BAR: sits just below the nav ── */
+  .lamp-bar {
+    position: absolute;
+    top: calc(64px + 20px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 20;
+    height: 2px;
+    width: 32rem;
+    background: #ffffff;
+    box-shadow:
+      0 0 6px  2px rgba(255,255,255,0.9),
+      0 0 22px 6px rgba(255,255,255,0.35);
+    border-radius: 1px;
+    opacity: 0;
+    animation: barIn 0.7s 0.2s ease forwards;
+    transition: width 0.06s linear, box-shadow 0.1s linear, opacity 0.2s ease;
+    will-change: width, box-shadow, opacity;
+  }
+  @keyframes barIn {
+    from { opacity: 0; width: 8rem; }
+    to   { opacity: 1; width: 32rem; }
+  }
+
+  /* ── BEAMS: fan DOWNWARD from the bar ── */
+  .lamp-beam-left {
+    position: absolute;
+    top: calc(64px + 20px);               /* top edge aligns with bar */
+    right: 50%;
+    height: 55vh;
+    width: 32rem;
+    overflow: hidden;
+    transform-origin: right top;
+    background-image: conic-gradient(
+      from 110deg at right top,
+      rgba(255,255,255,0.45)  0deg,
+      rgba(255,255,255,0.18) 14deg,
+      rgba(255,255,255,0.05) 32deg,
+      transparent            52deg,
+      transparent            360deg
+    );
+    opacity: 0;
+    animation: beamIn 1s 0.3s ease forwards;
+    transition: width 0.06s linear, opacity 0.1s linear;
+    will-change: width, opacity;
+  }
+
+  .lamp-beam-right {
+    position: absolute;
+    top: calc(64px + 20px);
+    left: 50%;
+    height: 55vh;
+    width: 32rem;
+    overflow: hidden;
+    transform-origin: left top;
+    background-image: conic-gradient(
+      from 250deg at left top,
+      transparent            0deg,
+      transparent            308deg,
+      rgba(255,255,255,0.05) 328deg,
+      rgba(255,255,255,0.18) 346deg,
+      rgba(255,255,255,0.45) 360deg
+    );
+    opacity: 0;
+    animation: beamIn 1s 0.3s ease forwards;
+    transition: width 0.06s linear, opacity 0.1s linear;
+    will-change: width, opacity;
+  }
+
+  @keyframes beamIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* ── WIDE AMBIENT ORB: blooms downward from bar onto text ── */
+  .lamp-glow-orb {
+    position: absolute;
+    top: calc(64px + 20px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 6;
+    height: 26rem;
+    width: 44rem;
+    border-radius: 9999px;
+    background: radial-gradient(ellipse 100% 55% at 50% 0%,
+      rgba(255,255,255,0.10) 0%,
+      rgba(255,255,255,0.04) 42%,
+      transparent            72%);
+    filter: blur(2.5rem);
+    opacity: 0;
+    animation: glowIn 1s 0.35s ease forwards;
+    transition: width 0.06s linear, opacity 0.12s linear;
+    will-change: width, opacity;
+  }
+
+  /* ── TIGHT CORE: small white bloom at bar level ── */
+  .lamp-glow-core {
+    position: absolute;
+    top: calc(64px + 20px);
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 7;
+    height: 8rem;
+    width: 20rem;
+    border-radius: 9999px;
+    background: radial-gradient(ellipse 100% 80% at 50% 0%,
+      rgba(255,255,255,0.5)  0%,
+      rgba(255,255,255,0.15) 45%,
+      transparent            80%);
+    filter: blur(1.2rem);
+    opacity: 0;
+    animation: glowIn 1s 0.25s ease forwards;
+    transition: width 0.06s linear;
+    will-change: width;
+  }
+
+  @keyframes glowIn {
+    from { opacity: 0; }
+    to   { opacity: 1; }
+  }
+
+  /* Hide unused legacy elements */
+  .lamp-bg-blur  { display: none; }
+  .lamp-glow-large { display: none; }
+  .lamp-floor    { display: none; }
+
+  /* ── CONTENT: stacks directly below bar ── */
+  .lamp-content {
+    position: relative;
+    z-index: 50;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    padding-top: calc(64px + 20px + 2px + 2rem);
+    padding-bottom: 4rem;
+    padding-left: 1.5rem;
+    padding-right: 1.5rem;
+    opacity: 1;
+    transition: transform 0.05s linear, opacity 0.05s linear;
+    will-change: transform, opacity;
+  }
+
+  /* Brand name: top of letters just below bar glow */
+  .lamp-brand {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: clamp(3.2rem, 8vw, 6.5rem);
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    line-height: 1;
+    background: linear-gradient(180deg,
+      #ffffff  0%,
+      #f0e8d5 20%,
+      #e0c98a 45%,
+      #c9a060 72%,
+      #a07840 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    margin-bottom: 0.55rem;
+    filter: drop-shadow(0 -2px 14px rgba(255,255,255,0.28));
+    opacity: 1;
+  }
+  .lamp-brand-dot { -webkit-text-fill-color: rgba(255,255,255,0.85); }
+
+  .lamp-tagline {
+    font-family: 'DM Sans', system-ui, sans-serif;
+    font-size: clamp(0.68rem, 1.4vw, 0.82rem);
+    font-weight: 500;
+    letter-spacing: 0.22em;
+    text-transform: uppercase;
+    color: rgba(184,151,90,0.72);
+    margin-bottom: 2rem;
+    opacity: 1;
+  }
+
+  .lamp-headline {
+    font-family: 'Libre Baskerville', Georgia, serif;
+    font-size: clamp(1.1rem, 2.4vw, 1.65rem);
+    font-weight: 400;
+    font-style: italic;
+    color: rgba(255,255,255,0.62);
+    line-height: 1.55;
+    max-width: 560px;
+    margin-bottom: 2.5rem;
+    opacity: 1;
+  }
+
+  .lamp-ctas {
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    justify-content: center;
+    opacity: 1;
+  }
+
+
+
+
+  /* ── HERO BODY: text block below the lamp hero ── */
+  .hero-body {
+    background: #020c06;
+    padding: 5rem 0 6rem;
+    border-bottom: 1px solid rgba(255,255,255,0.07);
+    text-align: center;
+  }
+  .hero-body .lamp-tagline {
+    color: rgba(184,151,90,0.72);
+    opacity: 1;
+  }
+  .hero-body .lamp-headline {
+    color: rgba(255,255,255,0.62);
+    opacity: 1;
+    margin-left: 0;
+  }
+  .hero-body .lamp-ctas {
+    opacity: 1;
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .two-col { grid-template-columns: 1fr; gap: 2.5rem; }
+    .pillars { grid-template-columns: 1fr; }
+    .case-cols { grid-template-columns: 1fr; }
+    .focus-list { grid-template-columns: 1fr; }
+    .footer-grid { grid-template-columns: 1fr; gap: 2rem; }
+    nav { padding: 0 1.25rem; }
+    .nav-links { display: none; }
+    .hero { padding: 4rem 0 3rem; }
+    .section { padding: 4rem 0; }
+    .form-grid { grid-template-columns: 1fr; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav id="main-nav">
+  <span class="nav-logo" onclick="showPage('home')">OJ<span>.</span> Solutions</span>
+
+  <!-- Sliding pill nav -->
+  <ul class="nav-pill-wrap" id="nav-pill-wrap"
+      onmouseleave="navPillLeave()">
+    <li class="nav-tab" onclick="showPage('services')"  onmouseenter="navPillEnter(this)">Services</li>
+    <li class="nav-tab" onclick="showPage('framework')" onmouseenter="navPillEnter(this)">Framework</li>
+    <li class="nav-tab" onclick="showPage('cases')"     onmouseenter="navPillEnter(this)">Case Studies</li>
+    <li class="nav-tab" onclick="showPage('insights')"  onmouseenter="navPillEnter(this)">Insights</li>
+    <li class="nav-tab" onclick="showPage('about')"     onmouseenter="navPillEnter(this)">About</li>
+    <li class="nav-tab" onclick="showPage('contact')"   onmouseenter="navPillEnter(this)">Contact</li>
+    <span class="nav-pill-cursor" id="nav-pill-cursor"></span>
+  </ul>
+
+  <span class="nav-cta" onclick="showPage('brief')">Submit a Brief</span>
+</nav>
+
+<!-- ══════════════ HOME ══════════════ -->
+<div class="page active" id="page-home">
+
+  <!-- LAMP HERO: bar + brand name only -->
+  <div class="lamp-hero">
+
+    <!-- Light stage -->
+    <div class="lamp-stage">
+      <div class="lamp-beam-left" id="lamp-beam-left-el"></div>
+      <div class="lamp-beam-right" id="lamp-beam-right-el"></div>
+      <div class="lamp-bg-blur"></div>
+      <div class="lamp-glow-large"></div>
+      <div class="lamp-glow-orb" id="lamp-orb-el"></div>
+      <div class="lamp-glow-core" id="lamp-core-el"></div>
+      <div class="lamp-bar" id="lamp-bar-el"></div>
+      <div class="lamp-floor"></div>
+    </div>
+
+    <!-- Brand name only — sits directly under the bar -->
+    <div class="lamp-content">
+      <div class="lamp-brand">OJ<span class="lamp-brand-dot">.</span> Solutions</div>
+    </div>
+
+
+
+  </div>
+
+  <!-- HERO BODY: tagline, headline, CTAs — separated from lamp, in normal flow -->
+  <div class="hero-body">
+    <div class="container">
+      <div class="lamp-tagline" style="margin-bottom:1.5rem;">M&amp;A Execution &nbsp;·&nbsp; Enterprise AI &nbsp;·&nbsp; Operational Change</div>
+      <div class="lamp-headline" style="margin:0 auto 2.5rem;">Complex change needs more than advice.<br>It needs execution.</div>
+      <div class="lamp-ctas" style="justify-content:center;">
+        <span class="btn btn-gold" onclick="showPage('brief')">Submit a Brief</span>
+        <span class="btn btn-outline-white" onclick="showPage('capability')">Request Capability Pack</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="trust-strip">
+    <div class="container">
+      <div class="trust-strip-inner">
+        <span class="trust-strip-label">Delivery across</span>
+        <span class="trust-strip-item">Post-deal execution</span>
+        <span class="trust-strip-item">Separation and carve-outs</span>
+        <span class="trust-strip-item">Business process redesign</span>
+        <span class="trust-strip-item">Enterprise AI transformation</span>
+        <span class="trust-strip-item">Technology and IT transition</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- THE PROBLEM -->
+  <div class="section">
+    <div class="container">
+      <div class="two-col">
+        <div>
+          <div class="eyebrow">The problem</div>
+          <h2>The deal may close. The real work starts after.</h2>
+        </div>
+        <div>
+          <p style="margin-bottom:1rem;font-style:italic;font-size:1.05rem;color:var(--ink);">This is where value is protected or lost.</p>
+          <p style="margin-bottom:1rem;">Businesses do not struggle through change because ambition is missing. They struggle because execution gets fragmented. Teams move in different directions. Systems do not connect. Decision-makers lose visibility.</p>
+          <p style="margin-bottom:1rem;">Processes become manual. Risk increases. Momentum drops.</p>
+          <p>That is where OJ Solutions comes in. We bring structure to complex business change so organisations can integrate faster, separate cleaner, modernise intelligently, and move forward with control.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <hr class="rule">
+
+  <!-- WHAT WE DO -->
+  <div class="section section--warm">
+    <div class="container">
+      <div class="eyebrow">What we do</div>
+      <h2 style="margin-bottom:1rem;">Execution across the moments that matter most</h2>
+      <p style="max-width:600px;margin-bottom:3rem;">OJ Solutions operates across two connected areas. M&amp;A and business transformation remain the core. Enterprise AI expands that capability into modern operating systems, intelligent workflows, and decision support.</p>
+      <div class="cards-grid">
+        <div class="card">
+          <span class="card-number">01</span>
+          <h3>M&amp;A and Business Transformation</h3>
+          <p>We support organisations through post-deal integration, divestments, carve-outs, operating model redesign, process optimisation, and change adoption. The focus: reduce disruption, protect value, and move from transaction to operational reality.</p>
+          <span class="card-link" onclick="showPage('services')">Explore M&amp;A Services →</span>
+        </div>
+        <div class="card">
+          <span class="card-number">02</span>
+          <h3>Enterprise AI Transformation</h3>
+          <p>We help organisations identify where AI creates operational value, then design and deploy the right systems around it. That includes workflow automation, AI-enabled decision support, internal portals, dashboards, and connected delivery environments.</p>
+          <span class="card-link" onclick="showPage('service-ai')">Explore AI Services →</span>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- WHY OJ -->
+  <div class="section">
+    <div class="container">
+      <div class="eyebrow">Why OJ Solutions</div>
+      <h2 style="margin-bottom:1rem;">Built for execution, not slide decks</h2>
+      <p style="max-width:620px;margin-bottom:3.5rem;">OJ Solutions is designed for organisations that need change delivered properly. That means strong governance, clear ownership, commercial realism, and an operating model that can hold under pressure.</p>
+      <div class="pillars">
+        <div class="pillar">
+          <h3>Business Alignment</h3>
+          <p>We translate strategic intent into practical workstreams, delivery priorities, and operating decisions that teams can actually execute.</p>
+        </div>
+        <div class="pillar">
+          <h3>People and Change</h3>
+          <p>Transformation fails when people are treated like an afterthought. We help leadership, teams, and functions move together with clarity.</p>
+        </div>
+        <div class="pillar">
+          <h3>Integration and Intelligence</h3>
+          <p>From systems integration to AI-enabled workflows, we build the structures that reduce friction and improve visibility across the organisation.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- AI POSITION -->
+  <div class="section section--dark">
+    <div class="container">
+      <div class="two-col">
+        <div>
+          <div class="eyebrow">Enterprise AI</div>
+          <h2 style="color:var(--white);">AI is not the strategy. Business value is.</h2>
+        </div>
+        <div>
+          <p style="margin-bottom:1.5rem;">Most AI conversations are noisy, vague, or detached from operational reality. We take a different route.</p>
+          <p style="margin-bottom:1.5rem;">OJ Solutions helps organisations apply AI where it actually matters — in workflow efficiency, visibility, handoff quality, reporting speed, system intelligence, and decision support.</p>
+          <p style="margin-bottom:2rem;">The goal is not to add more tools. The goal is to build a more capable business.</p>
+          <ul class="bullet-list">
+            <li>AI strategy grounded in real operating needs</li>
+            <li>Workflow automation tied to business outcomes</li>
+            <li>Systems designed around governance and control</li>
+            <li>Clear integration with existing teams and environments</li>
+            <li>Measurable value, not experimental theatre</li>
+          </ul>
+          <div class="btn-group">
+            <span class="btn btn-gold" onclick="showPage('service-ai')">See how we deliver AI transformation</span>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SERVICES PREVIEW -->
+  <div class="section section--warm">
+    <div class="container">
+      <div class="eyebrow">Services</div>
+      <h2 style="margin-bottom:3rem;">Where we create value</h2>
+      <div class="cards-grid">
+        <div class="card" onclick="showPage('service-integration')" style="cursor:pointer">
+          <span class="card-number">01</span>
+          <h3>Post-Deal Integration</h3>
+          <p>Align people, processes, systems, and governance after the transaction so value is realised in practice, not just in theory.</p>
+        </div>
+        <div class="card" onclick="showPage('service-carveout')" style="cursor:pointer">
+          <span class="card-number">02</span>
+          <h3>Divestments and Carve-Outs</h3>
+          <p>Plan and execute clean separations with continuity, reduced disruption, and a structured path to standalone operation.</p>
+        </div>
+        <div class="card" onclick="showPage('service-process')" style="cursor:pointer">
+          <span class="card-number">03</span>
+          <h3>Business Process Optimisation</h3>
+          <p>Redesign operational flows, reduce friction, and improve execution across critical functions.</p>
+        </div>
+        <div class="card" onclick="showPage('service-tech')" style="cursor:pointer">
+          <span class="card-number">04</span>
+          <h3>Technology and IT Transition</h3>
+          <p>Move systems, data, workflows, and environments with stronger control and lower execution risk.</p>
+        </div>
+        <div class="card" onclick="showPage('service-ai')" style="cursor:pointer">
+          <span class="card-number">05</span>
+          <h3>Enterprise AI Transformation</h3>
+          <p>Identify high-value AI opportunities and deploy connected systems that improve visibility, efficiency, and operating quality.</p>
+        </div>
+        <div class="card" onclick="showPage('service-change')" style="cursor:pointer">
+          <span class="card-number">06</span>
+          <h3>Change and Adoption</h3>
+          <p>Support leaders and teams through transition so execution holds beyond go-live.</p>
+        </div>
+      </div>
+      <div class="btn-group" style="margin-top:2rem;">
+        <span class="btn btn-primary" onclick="showPage('services')">View All Services</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- FRAMEWORK PREVIEW -->
+  <div class="section">
+    <div class="container">
+      <div class="eyebrow">Delivery Framework</div>
+      <h2 style="margin-bottom:1rem;">A structured framework for high-stakes change</h2>
+      <p style="max-width:600px;margin-bottom:3rem;">Every engagement follows a defined path. That creates clarity for leadership, reduces execution risk, and makes progress visible from day one.</p>
+      <div style="display:grid;grid-template-columns:repeat(5,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);">
+        <div class="card" style="text-align:center;padding:1.75rem 1.25rem;"><span class="card-number" style="font-size:1.5rem;text-align:center;display:block;margin-bottom:0.5rem;">01</span><h3 style="font-size:0.95rem;">Diagnose</h3></div>
+        <div class="card" style="text-align:center;padding:1.75rem 1.25rem;"><span class="card-number" style="font-size:1.5rem;text-align:center;display:block;margin-bottom:0.5rem;">02</span><h3 style="font-size:0.95rem;">Design</h3></div>
+        <div class="card" style="text-align:center;padding:1.75rem 1.25rem;"><span class="card-number" style="font-size:1.5rem;text-align:center;display:block;margin-bottom:0.5rem;">03</span><h3 style="font-size:0.95rem;">Build &amp; Connect</h3></div>
+        <div class="card" style="text-align:center;padding:1.75rem 1.25rem;"><span class="card-number" style="font-size:1.5rem;text-align:center;display:block;margin-bottom:0.5rem;">04</span><h3 style="font-size:0.95rem;">Launch with Control</h3></div>
+        <div class="card" style="text-align:center;padding:1.75rem 1.25rem;"><span class="card-number" style="font-size:1.5rem;text-align:center;display:block;margin-bottom:0.5rem;">05</span><h3 style="font-size:0.95rem;">Optimise</h3></div>
+      </div>
+      <div class="btn-group"><span class="btn btn-secondary" onclick="showPage('framework')">View Delivery Framework</span></div>
+    </div>
+  </div>
+
+  <!-- OUTCOMES -->
+  <div class="section section--accent">
+    <div class="container">
+      <div class="two-col">
+        <div>
+          <div class="eyebrow">Outcomes</div>
+          <h2 style="color:var(--white);">What better execution looks like</h2>
+          <p style="margin-top:1rem;">When change is structured properly, organisations move faster with less friction. Leadership sees more clearly. Teams operate with stronger control. Risk reduces. Momentum holds.</p>
+        </div>
+        <ul class="bullet-list">
+          <li>Clearer accountability across workstreams</li>
+          <li>Better visibility across transition stages</li>
+          <li>Less operational leakage between teams and functions</li>
+          <li>Reduced manual dependency</li>
+          <li>Stronger continuity through complex change</li>
+          <li>A more scalable operating environment</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- CASE STUDIES PREVIEW -->
+  <div class="section">
+    <div class="container">
+      <div class="eyebrow">Case Studies</div>
+      <h2 style="margin-bottom:1rem;">Selected engagements and transformation outcomes</h2>
+      <p style="max-width:600px;margin-bottom:3rem;">Our work spans post-deal execution, operational redesign, systems transition, and delivery-led transformation. The common thread: bringing structure to complexity.</p>
+      <div class="cards-grid">
+        <div class="card"><h3 style="font-size:1.05rem;margin-bottom:0.75rem;">Operational integration after acquisition</h3><p style="font-size:0.88rem;">A structured integration programme that aligned systems, workstreams, and responsibilities to reduce duplication and accelerate operational stability.</p></div>
+        <div class="card"><h3 style="font-size:1.05rem;margin-bottom:0.75rem;">Separation planning for a divested business unit</h3><p style="font-size:0.88rem;">A controlled carve-out approach that protected continuity, reduced disruption, and created a cleaner path to standalone operation.</p></div>
+        <div class="card"><h3 style="font-size:1.05rem;margin-bottom:0.75rem;">AI-enabled workflow redesign</h3><p style="font-size:0.88rem;">A business-first transformation initiative that improved process visibility, reduced manual handling, and strengthened leadership reporting.</p></div>
+      </div>
+      <div class="btn-group"><span class="btn btn-primary" onclick="showPage('cases')">Explore Case Studies</span></div>
+    </div>
+  </div>
+
+  <!-- CAPABILITY CTA -->
+  <div class="section section--warm">
+    <div class="container" style="text-align:center;">
+      <div class="eyebrow">Capability Pack</div>
+      <h2 style="margin-bottom:1rem;">Need the deeper view?</h2>
+      <p style="max-width:540px;margin:0 auto 2rem;">Request the OJ Solutions capability pack for a detailed overview of our approach, services, delivery methodology, and transformation focus across M&amp;A and enterprise AI.</p>
+      <div class="btn-group" style="justify-content:center;"><span class="btn btn-primary" onclick="showPage('capability')">Request Capability Pack</span></div>
+      <p style="margin-top:1rem;font-size:0.82rem;color:var(--ink-light);font-style:italic;">Built for decision-makers evaluating execution partners for complex change.</p>
+    </div>
+  </div>
+
+  <!-- INSIGHTS PREVIEW -->
+  <div class="section">
+    <div class="container">
+      <div class="eyebrow">Insights</div>
+      <h2 style="margin-bottom:1rem;">Thinking for leaders navigating change</h2>
+      <p style="max-width:600px;margin-bottom:3rem;">Explore practical insights on M&amp;A execution, operating model redesign, AI transformation, process optimisation, and leadership through transition.</p>
+      <div class="insight-grid">
+        <div class="insight-card"><div class="insight-cat">M&amp;A Integration</div><h3>Why value is lost after the deal closes</h3></div>
+        <div class="insight-card"><div class="insight-cat">Enterprise AI</div><h3>Where AI actually creates operational leverage</h3></div>
+        <div class="insight-card"><div class="insight-cat">Operational Transformation</div><h3>Why change programmes fail in the handoff layer</h3></div>
+        <div class="insight-card"><div class="insight-cat">Transformation Leadership</div><h3>How to structure transformation for accountability</h3></div>
+      </div>
+      <div class="btn-group"><span class="btn btn-secondary" onclick="showPage('insights')">View Insights</span></div>
+    </div>
+  </div>
+
+  <!-- FAQ -->
+  <div class="section section--warm">
+    <div class="container">
+      <div style="max-width:720px;margin:0 auto;">
+        <div class="eyebrow">FAQ</div>
+        <h2 style="margin-bottom:2.5rem;">Common questions</h2>
+        <div class="faq-item"><div class="faq-q">What does OJ Solutions actually do?</div><div class="faq-a">We help organisations execute complex change. That includes post-deal integration, divestments, operational redesign, technology transition, and enterprise AI transformation.</div></div>
+        <div class="faq-item"><div class="faq-q">Do you only work on M&amp;A projects?</div><div class="faq-a">No. M&amp;A remains a core strength, but we also support broader transformation programmes where operations, systems, and decision-making need to be redesigned.</div></div>
+        <div class="faq-item"><div class="faq-q">What do you mean by enterprise AI?</div><div class="faq-a">We mean AI applied to real business operations. That includes workflow automation, internal visibility, reporting, intelligent routing, decision support, and connected platforms.</div></div>
+        <div class="faq-item"><div class="faq-q">Do you provide strategy or implementation?</div><div class="faq-a">Both. We define the right transformation path, then move it into structured execution.</div></div>
+        <div class="faq-item"><div class="faq-q">Who do you typically work with?</div><div class="faq-a">Organisations navigating complexity — usually where multiple teams, systems, stakeholders, and risks need to be coordinated properly.</div></div>
+        <div class="faq-item"><div class="faq-q">How do engagements begin?</div><div class="faq-a">Most begin with a brief, a discovery conversation, and a structured scoping process.</div></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- FINAL CTA -->
+  <div class="cta-band">
+    <div class="container">
+      <h2>If the change is important, the execution has to be right.</h2>
+      <p>Bring us in when the organisation cannot afford confusion, weak handoffs, or delivery drift.</p>
+      <div class="btn-group" style="justify-content:center;">
+        <span class="btn btn-gold" onclick="showPage('brief')">Submit a Brief</span>
+        <span class="btn btn-outline-white" onclick="showPage('contact')">Talk to OJ Solutions</span>
+      </div>
+    </div>
+  </div>
+
+</div><!-- /home -->
+
+<!-- ══════════════ SERVICES OVERVIEW ══════════════ -->
+<div class="page" id="page-services">
+  <div class="topbar">Services built for execution under pressure</div>
+  <div class="hero">
+    <div class="container"><div class="hero-inner">
+      <div class="eyebrow">Services</div>
+      <h1>Services built for execution under pressure</h1>
+      <p class="lead">OJ Solutions supports complex business change across M&amp;A, operations, systems, and enterprise AI. Every service is designed to move strategy into controlled delivery.</p>
+      <div class="btn-group"><span class="btn btn-primary" onclick="showPage('brief')">Submit a Brief</span></div>
+    </div></div>
+  </div>
+  <div class="section section--warm">
+    <div class="container">
+      <p style="max-width:700px;font-size:1.05rem;font-style:italic;color:var(--ink);">No two transformation environments are identical. But the failure patterns are familiar. Unclear ownership. Inconsistent execution. Weak handoffs. Poor visibility. Tool complexity. Slow decisions.</p>
+      <p style="max-width:700px;margin-top:1rem;">Our services are designed to solve those problems at the operating level.</p>
+    </div>
+  </div>
+  <div class="section">
+    <div class="container">
+
+      <div class="service-block">
+        <div class="two-col">
+          <div><div class="service-label">01</div><h2 style="font-size:1.8rem;">Post-Deal Integration</h2><p style="margin-top:1rem;">When the transaction is complete, real value depends on what happens next. We help organisations align workstreams, systems, people, and operating structures so the business can stabilise, integrate, and move forward with confidence.</p><span class="btn btn-primary" style="margin-top:1.5rem;display:inline-block;" onclick="showPage('service-integration')">View Service</span></div>
+          <div>
+            <p style="font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-light);margin-bottom:1rem;">What this can include</p>
+            <div class="focus-list"><div class="focus-item">Integration planning</div><div class="focus-item">Functional alignment</div><div class="focus-item">Systems coordination</div><div class="focus-item">Governance structure</div><div class="focus-item">Workstream management</div><div class="focus-item">Risk and dependency tracking</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="service-block">
+        <div class="two-col">
+          <div><div class="service-label">02</div><h2 style="font-size:1.8rem;">Divestments and Carve-Outs</h2><p style="margin-top:1rem;">Separation is not just a legal or financial event. It is an operational challenge. We help organisations plan and execute cleaner carve-outs with stronger continuity, clearer ownership, and lower disruption.</p><span class="btn btn-primary" style="margin-top:1.5rem;display:inline-block;" onclick="showPage('service-carveout')">View Service</span></div>
+          <div>
+            <p style="font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-light);margin-bottom:1rem;">What this can include</p>
+            <div class="focus-list"><div class="focus-item">Separation planning</div><div class="focus-item">Transitional operating design</div><div class="focus-item">Dependency mapping</div><div class="focus-item">Technology and data separation</div><div class="focus-item">Business continuity support</div><div class="focus-item">Cross-functional coordination</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="service-block">
+        <div class="two-col">
+          <div><div class="service-label">03</div><h2 style="font-size:1.8rem;">Business Process Optimisation</h2><p style="margin-top:1rem;">When critical processes are fragmented, slow, or too manual, performance suffers. We redesign workflows and operating logic so the business can move more efficiently and with better control.</p><span class="btn btn-primary" style="margin-top:1.5rem;display:inline-block;" onclick="showPage('service-process')">View Service</span></div>
+          <div>
+            <p style="font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-light);margin-bottom:1rem;">What this can include</p>
+            <div class="focus-list"><div class="focus-item">Current-state assessment</div><div class="focus-item">Workflow redesign</div><div class="focus-item">Decision point clarification</div><div class="focus-item">Process simplification</div><div class="focus-item">Operational handoff improvement</div><div class="focus-item">Performance visibility</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="service-block">
+        <div class="two-col">
+          <div><div class="service-label">04</div><h2 style="font-size:1.8rem;">Technology and IT Transition</h2><p style="margin-top:1rem;">Systems change is where execution risk becomes real. We help organisations manage transitions across platforms, environments, data, and operational tools so continuity holds while change is delivered.</p><span class="btn btn-primary" style="margin-top:1.5rem;display:inline-block;" onclick="showPage('service-tech')">View Service</span></div>
+          <div>
+            <p style="font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-light);margin-bottom:1rem;">What this can include</p>
+            <div class="focus-list"><div class="focus-item">Technology transition planning</div><div class="focus-item">Data and system coordination</div><div class="focus-item">Integration support</div><div class="focus-item">Access and workflow control</div><div class="focus-item">Environment readiness</div><div class="focus-item">Go-live support</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="service-block">
+        <div class="two-col">
+          <div><div class="service-label">05</div><h2 style="font-size:1.8rem;">Enterprise AI Transformation</h2><p style="margin-top:1rem;">AI only matters when it improves how the organisation operates. We help businesses identify where AI can reduce friction, improve visibility, automate work, and strengthen decision-making.</p><span class="btn btn-primary" style="margin-top:1.5rem;display:inline-block;" onclick="showPage('service-ai')">View Service</span></div>
+          <div>
+            <p style="font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-light);margin-bottom:1rem;">What this can include</p>
+            <div class="focus-list"><div class="focus-item">AI opportunity mapping</div><div class="focus-item">Workflow automation</div><div class="focus-item">Internal dashboards</div><div class="focus-item">Intelligent routing and triage</div><div class="focus-item">Reporting acceleration</div><div class="focus-item">AI-enabled operational systems</div></div>
+          </div>
+        </div>
+      </div>
+
+      <div class="service-block">
+        <div class="two-col">
+          <div><div class="service-label">06</div><h2 style="font-size:1.8rem;">Change and Adoption</h2><p style="margin-top:1rem;">Even the right solution fails when adoption is weak. We help leadership and teams move through change with clearer communication, role alignment, and practical implementation support.</p><span class="btn btn-primary" style="margin-top:1.5rem;display:inline-block;" onclick="showPage('service-change')">View Service</span></div>
+          <div>
+            <p style="font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-light);margin-bottom:1rem;">What this can include</p>
+            <div class="focus-list"><div class="focus-item">Stakeholder alignment</div><div class="focus-item">Leadership enablement</div><div class="focus-item">Communication planning</div><div class="focus-item">Adoption support</div><div class="focus-item">Role clarity</div><div class="focus-item">Transition readiness</div></div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- ══ SERVICE: INTEGRATION ══ -->
+<div class="page" id="page-service-integration">
+  <div class="hero"><div class="container"><div class="hero-inner">
+    <div class="eyebrow">Post-Deal Integration</div>
+    <h1>Post-deal integration that moves beyond planning into execution</h1>
+    <p class="lead">We help organisations align operations, systems, governance, and teams after the deal so value is realised with less friction and better control.</p>
+    <div class="btn-group"><span class="btn btn-primary" onclick="showPage('brief')">Submit a Brief</span><span class="btn btn-secondary" onclick="showPage('services')">← All Services</span></div>
+  </div></div></div>
+  <div class="section"><div class="container"><div class="two-col">
+    <div>
+      <p style="margin-bottom:1.5rem;font-size:1.05rem;font-style:italic;color:var(--ink);">A transaction can create opportunity. Integration determines whether that opportunity becomes reality.</p>
+      <p style="margin-bottom:1rem;">OJ Solutions supports post-deal execution across the moving parts that typically create drag: workstream coordination, systems alignment, stakeholder clarity, governance structure, and operational continuity.</p>
+      <p>We help leadership turn intent into a managed delivery environment.</p>
+    </div>
+    <div>
+      <p style="font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-light);margin-bottom:1rem;">What we focus on</p>
+      <div class="focus-list"><div class="focus-item">Integration planning and execution support</div><div class="focus-item">Functional and operational alignment</div><div class="focus-item">Systems and process coordination</div><div class="focus-item">Governance and reporting structure</div><div class="focus-item">Dependency and risk management</div><div class="focus-item">Stakeholder communication</div></div>
+      <p style="font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-light);margin-top:2rem;margin-bottom:1rem;">Outcomes</p>
+      <ul class="bullet-list"><li>Faster operational alignment</li><li>Reduced duplication and confusion</li><li>Clearer visibility for leadership</li><li>Better coordination across teams</li><li>Stronger value realisation</li></ul>
+    </div>
+  </div></div></div>
+  <div class="cta-band"><div class="container"><h2>Need integration delivered properly?</h2><div class="btn-group" style="justify-content:center;"><span class="btn btn-gold" onclick="showPage('brief')">Submit a Brief</span></div></div></div>
+</div>
+
+<!-- ══ SERVICE: CARVE-OUT ══ -->
+<div class="page" id="page-service-carveout">
+  <div class="hero"><div class="container"><div class="hero-inner">
+    <div class="eyebrow">Divestments and Carve-Outs</div>
+    <h1>Carve-outs and separations with cleaner execution</h1>
+    <p class="lead">We help organisations structure and deliver separations with continuity, control, and a stronger path to standalone operation.</p>
+    <div class="btn-group"><span class="btn btn-primary" onclick="showPage('brief')">Submit a Brief</span><span class="btn btn-secondary" onclick="showPage('services')">← All Services</span></div>
+  </div></div></div>
+  <div class="section"><div class="container"><div class="two-col">
+    <div>
+      <p style="margin-bottom:1.5rem;font-size:1.05rem;font-style:italic;color:var(--ink);">Carve-outs are often underestimated because the challenge looks straightforward on paper.</p>
+      <p>In practice, separations expose hidden dependencies, weak processes, and technology risks fast. OJ Solutions helps organisations manage those realities through structured planning, cross-functional coordination, and controlled delivery.</p>
+    </div>
+    <div>
+      <p style="font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-light);margin-bottom:1rem;">What we focus on</p>
+      <div class="focus-list"><div class="focus-item">Separation planning</div><div class="focus-item">Dependency mapping</div><div class="focus-item">Operational continuity</div><div class="focus-item">Transitional service coordination</div><div class="focus-item">System and data separation</div><div class="focus-item">Standalone readiness</div></div>
+      <p style="font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-light);margin-top:2rem;margin-bottom:1rem;">Outcomes</p>
+      <ul class="bullet-list"><li>Reduced disruption during separation</li><li>Better visibility across dependencies</li><li>Cleaner transition planning</li><li>Stronger operational continuity</li><li>Clearer accountability through execution</li></ul>
+    </div>
+  </div></div></div>
+  <div class="cta-band"><div class="container"><h2>Start a separation brief</h2><div class="btn-group" style="justify-content:center;"><span class="btn btn-gold" onclick="showPage('brief')">Submit a Brief</span></div></div></div>
+</div>
+
+<!-- ══ SERVICE: AI ══ -->
+<div class="page" id="page-service-ai">
+  <div class="hero section--dark" style="border-bottom:1px solid rgba(255,255,255,0.1)"><div class="container"><div class="hero-inner">
+    <div class="eyebrow">Enterprise AI Transformation</div>
+    <h1 style="color:var(--white);">Enterprise AI, built around business reality</h1>
+    <p class="lead" style="color:rgba(255,255,255,0.72);">We help organisations move beyond AI noise and deploy systems that improve workflow quality, reporting, visibility, and decision-making.</p>
+    <div class="btn-group"><span class="btn btn-gold" onclick="showPage('brief')">Submit a Brief</span><span class="btn btn-outline-white" onclick="showPage('services')">← All Services</span></div>
+  </div></div></div>
+  <div class="section section--dark"><div class="container"><div class="two-col">
+    <div>
+      <p style="margin-bottom:1.5rem;font-size:1.05rem;font-style:italic;color:var(--white);">AI does not create value because it sounds modern. It creates value when it is tied to real operating needs.</p>
+      <p style="margin-bottom:1rem;">OJ Solutions helps organisations identify where AI can improve execution, then designs the systems, workflows, and controls required to make that value usable inside the business.</p>
+      <p>This is not innovation theatre. It is operational transformation.</p>
+    </div>
+    <div>
+      <p style="font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-bottom:1rem;">What we focus on</p>
+      <div class="focus-list"><div class="focus-item focus-item-dark">AI opportunity mapping</div><div class="focus-item focus-item-dark">Workflow automation</div><div class="focus-item focus-item-dark">Internal visibility and dashboards</div><div class="focus-item focus-item-dark">Intelligent routing and triage</div><div class="focus-item focus-item-dark">Reporting acceleration</div><div class="focus-item focus-item-dark">AI-enabled operational infrastructure</div></div>
+      <p style="font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:rgba(255,255,255,0.4);margin-top:2rem;margin-bottom:1rem;">Where it creates value</p>
+      <ul class="bullet-list"><li>Repetitive workflow handling</li><li>Manual handoff reduction</li><li>Faster internal response</li><li>Better leadership visibility</li><li>Improved decision support</li><li>Lower operational friction</li></ul>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- ══ SERVICE: PROCESS ══ -->
+<div class="page" id="page-service-process">
+  <div class="hero"><div class="container"><div class="hero-inner">
+    <div class="eyebrow">Business Process Optimisation</div>
+    <h1>Better processes create better performance</h1>
+    <p class="lead">We redesign workflows, handoffs, and operating logic so organisations can execute with less friction and more control.</p>
+    <div class="btn-group"><span class="btn btn-primary" onclick="showPage('brief')">Submit a Brief</span><span class="btn btn-secondary" onclick="showPage('services')">← All Services</span></div>
+  </div></div></div>
+  <div class="section"><div class="container"><div class="two-col">
+    <div>
+      <p style="margin-bottom:1.5rem;font-size:1.05rem;font-style:italic;color:var(--ink);">Most process problems are not caused by effort. They are caused by structural weakness.</p>
+      <p>When workflows are unclear, overly manual, or poorly connected, the business slows down. OJ Solutions helps organisations identify those weak points and redesign operations around stronger flow, better accountability, and clearer execution logic.</p>
+    </div>
+    <div>
+      <p style="font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-light);margin-bottom:1rem;">What we focus on</p>
+      <div class="focus-list"><div class="focus-item">Process mapping</div><div class="focus-item">Friction analysis</div><div class="focus-item">Workflow redesign</div><div class="focus-item">Approval logic</div><div class="focus-item">Handoff quality</div><div class="focus-item">Operational visibility</div></div>
+      <p style="font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-light);margin-top:2rem;margin-bottom:1rem;">Outcomes</p>
+      <ul class="bullet-list"><li>Faster execution</li><li>Cleaner handoffs</li><li>Less manual dependency</li><li>Better team alignment</li><li>More controllable operations</li></ul>
+    </div>
+  </div></div></div>
+  <div class="cta-band"><div class="container"><h2>Optimise a process with OJ Solutions</h2><div class="btn-group" style="justify-content:center;"><span class="btn btn-gold" onclick="showPage('brief')">Submit a Brief</span></div></div></div>
+</div>
+
+<!-- ══ SERVICE: TECH ══ -->
+<div class="page" id="page-service-tech">
+  <div class="hero"><div class="container"><div class="hero-inner">
+    <div class="eyebrow">Technology and IT Transition</div>
+    <h1>Technology transition without operational drift</h1>
+    <p class="lead">We help organisations move systems, data, and workflows with stronger structure, clearer ownership, and lower execution risk.</p>
+    <div class="btn-group"><span class="btn btn-primary" onclick="showPage('brief')">Submit a Brief</span><span class="btn btn-secondary" onclick="showPage('services')">← All Services</span></div>
+  </div></div></div>
+  <div class="section"><div class="container"><div class="two-col">
+    <div>
+      <p style="margin-bottom:1.5rem;font-size:1.05rem;font-style:italic;color:var(--ink);">Technology transition is rarely just a technical issue.</p>
+      <p>It affects workflow continuity, data access, reporting quality, role clarity, and business confidence. OJ Solutions supports technology and IT transitions as part of the broader operating environment, helping organisations protect continuity while change is delivered.</p>
+    </div>
+    <div>
+      <p style="font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-light);margin-bottom:1rem;">What we focus on</p>
+      <div class="focus-list"><div class="focus-item">Transition planning</div><div class="focus-item">System coordination</div><div class="focus-item">Data flow alignment</div><div class="focus-item">Integration workstreams</div><div class="focus-item">Readiness validation</div><div class="focus-item">Deployment support</div></div>
+      <p style="font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-light);margin-top:2rem;margin-bottom:1rem;">Outcomes</p>
+      <ul class="bullet-list"><li>Lower transition risk</li><li>Better continuity during change</li><li>Stronger coordination across teams</li><li>Improved control during go-live</li><li>More stable post-launch operations</li></ul>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- ══ SERVICE: CHANGE ══ -->
+<div class="page" id="page-service-change">
+  <div class="hero"><div class="container"><div class="hero-inner">
+    <div class="eyebrow">Change and Adoption</div>
+    <h1>Change only works when people move with it</h1>
+    <p class="lead">We help leaders and teams navigate transformation with clearer communication, stronger role alignment, and more practical adoption support.</p>
+    <div class="btn-group"><span class="btn btn-primary" onclick="showPage('brief')">Submit a Brief</span><span class="btn btn-secondary" onclick="showPage('services')">← All Services</span></div>
+  </div></div></div>
+  <div class="section"><div class="container"><div class="two-col">
+    <div>
+      <p style="margin-bottom:1.5rem;font-size:1.05rem;font-style:italic;color:var(--ink);">The technical answer is only half the job. The other half is getting the organisation to move with it.</p>
+      <p>OJ Solutions supports the people layer of transformation so new systems, workflows, and structures do not stall because communication was weak or ownership stayed unclear.</p>
+    </div>
+    <div>
+      <p style="font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-light);margin-bottom:1rem;">What we focus on</p>
+      <div class="focus-list"><div class="focus-item">Stakeholder alignment</div><div class="focus-item">Leadership support</div><div class="focus-item">Change communication</div><div class="focus-item">Role clarity</div><div class="focus-item">Adoption readiness</div><div class="focus-item">Transition reinforcement</div></div>
+      <p style="font-size:0.78rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-light);margin-top:2rem;margin-bottom:1rem;">Outcomes</p>
+      <ul class="bullet-list"><li>Better engagement with change</li><li>Reduced confusion across teams</li><li>Stronger leadership alignment</li><li>Higher adoption quality</li><li>More durable transformation</li></ul>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- ══════════════ FRAMEWORK ══════════════ -->
+<div class="page" id="page-framework">
+  <div class="topbar">A delivery framework designed for control, visibility, and predictable progress</div>
+  <div class="hero"><div class="container"><div class="hero-inner">
+    <div class="eyebrow">Delivery Framework</div>
+    <h1>A delivery framework designed for control, visibility, and predictable progress</h1>
+    <p class="lead">Every engagement is structured around clear ownership, staged execution, defined checkpoints, and practical accountability.</p>
+    <div class="btn-group"><span class="btn btn-primary" onclick="showPage('brief')">Submit a Brief</span></div>
+  </div></div></div>
+  <div class="section section--warm">
+    <div class="container">
+      <p style="max-width:660px;font-size:1.1rem;font-style:italic;color:var(--ink);">Transformation fails when delivery is vague.</p>
+      <p style="max-width:660px;margin-top:1rem;">OJ Solutions uses a structured framework to move complex work from diagnosis to live execution without losing control. That framework is built to support high-stakes environments where multiple workstreams, systems, and stakeholders need to move together.</p>
+    </div>
+  </div>
+  <div class="section"><div class="container">
+
+    <div class="step"><div class="step-num">01</div><div class="step-content"><h3>Diagnose</h3><p style="font-style:italic;margin-bottom:0.5rem;">We establish clarity before action.</p><p>This phase is about understanding what is broken, what matters most, what risks exist, and what good looks like. We align the right stakeholders, assess the current state, define scope, and create a clear direction for delivery.</p><div class="step-outputs"><span class="step-tag">Current-state assessment</span><span class="step-tag">Stakeholder alignment</span><span class="step-tag">Scope definition</span><span class="step-tag">Risk view</span><span class="step-tag">Success criteria</span></div></div></div>
+
+    <div class="step"><div class="step-num">02</div><div class="step-content"><h3>Design</h3><p style="font-style:italic;margin-bottom:0.5rem;">We design the operating path before build begins.</p><p>Once the problem is clear, we shape the right solution. That includes workflow logic, system structure, governance approach, delivery sequencing, and integration requirements.</p><div class="step-outputs"><span class="step-tag">Delivery design</span><span class="step-tag">Workflow architecture</span><span class="step-tag">Systems view</span><span class="step-tag">Governance structure</span><span class="step-tag">Execution roadmap</span></div></div></div>
+
+    <div class="step"><div class="step-num">03</div><div class="step-content"><h3>Build and Connect</h3><p style="font-style:italic;margin-bottom:0.5rem;">We move design into implementation.</p><p>This is where plans turn into working environments. We build, configure, coordinate, integrate, and validate the moving parts required for effective execution.</p><div class="step-outputs"><span class="step-tag">Built components</span><span class="step-tag">Connected workflows</span><span class="step-tag">Configured environments</span><span class="step-tag">Visibility layer</span><span class="step-tag">Test-ready delivery setup</span></div></div></div>
+
+    <div class="step"><div class="step-num">04</div><div class="step-content"><h3>Launch with Control</h3><p style="font-style:italic;margin-bottom:0.5rem;">We deploy with discipline, not guesswork.</p><p>Nothing important should go live without clarity. This phase covers validation, handoff readiness, training, final sign-off, and monitored launch conditions.</p><div class="step-outputs"><span class="step-tag">Go-live readiness</span><span class="step-tag">User enablement</span><span class="step-tag">Final validation</span><span class="step-tag">Controlled deployment</span><span class="step-tag">Operational launch support</span></div></div></div>
+
+    <div class="step"><div class="step-num">05</div><div class="step-content"><h3>Optimise</h3><p style="font-style:italic;margin-bottom:0.5rem;">We improve performance based on live reality.</p><p>Real value is strengthened after launch. We monitor, refine, support, and improve based on actual use, operational feedback, and performance data.</p><div class="step-outputs"><span class="step-tag">Improvement log</span><span class="step-tag">Workflow refinements</span><span class="step-tag">Reporting cadence</span><span class="step-tag">Stability support</span><span class="step-tag">Ongoing optimisation path</span></div></div></div>
+
+  </div></div>
+  <div class="section section--warm"><div class="container"><div class="two-col">
+    <div><div class="eyebrow">Governance</div><h2>Built with accountability from the start</h2><p style="margin-top:1rem;">OJ Solutions structures engagements around named ownership, reporting rhythm, clear checkpoints, and practical change control. That keeps decision-makers informed and reduces execution drift across the programme.</p></div>
+    <ul class="bullet-list"><li>Defined workstream accountability</li><li>Clear delivery checkpoints</li><li>Practical change request handling</li><li>Leadership visibility through reporting</li><li>Risk-aware execution logic</li></ul>
+  </div></div></div>
+  <div class="cta-band"><div class="container"><h2>Bring structure to the work before complexity takes over</h2><div class="btn-group" style="justify-content:center;"><span class="btn btn-gold" onclick="showPage('brief')">Submit a Brief</span></div></div></div>
+</div>
+
+<!-- ══════════════ CASE STUDIES ══════════════ -->
+<div class="page" id="page-cases">
+  <div class="topbar">Selected work across transformation, integration, and execution</div>
+  <div class="hero"><div class="container"><div class="hero-inner">
+    <div class="eyebrow">Case Studies</div>
+    <h1>Selected work across transformation, integration, and execution</h1>
+    <p class="lead">A look at how OJ Solutions helps organisations navigate complexity with clearer structure, better coordination, and stronger delivery outcomes.</p>
+  </div></div></div>
+  <div class="section section--warm"><div class="container">
+    <p style="max-width:620px;font-size:1.05rem;font-style:italic;color:var(--ink);">Not every engagement looks the same. But the pattern is familiar. Complexity increases. Risk rises. Visibility drops. Teams need structure.</p>
+    <p style="max-width:620px;margin-top:0.75rem;">These case studies show how OJ Solutions brings control to change.</p>
+  </div></div>
+  <div class="section"><div class="container">
+
+    <div class="case-study">
+      <span class="case-label">Post-acquisition operational integration</span>
+      <h3>Operational integration after acquisition</h3>
+      <div class="case-cols">
+        <div><div class="case-col-head">Situation</div><p>A business needed to align operational workstreams, reporting structure, and systems after a significant acquisition.</p></div>
+        <div><div class="case-col-head">Challenge</div><p>Different teams were moving at different speeds. Dependencies were unclear. Leadership needed stronger visibility and coordination.</p></div>
+        <div><div class="case-col-head">Outcome</div><p>A more stable operating model, clearer accountability, and faster movement toward integration goals.</p></div>
+      </div>
+    </div>
+
+    <div class="case-study">
+      <span class="case-label">Divestment and separation readiness</span>
+      <h3>Separation planning for a divested business unit</h3>
+      <div class="case-cols">
+        <div><div class="case-col-head">Situation</div><p>A business unit needed to be separated cleanly while protecting continuity and reducing disruption.</p></div>
+        <div><div class="case-col-head">Challenge</div><p>Shared systems, process dependencies, and role overlap created execution risk.</p></div>
+        <div><div class="case-col-head">Outcome</div><p>A cleaner separation path with stronger continuity and lower operational disruption.</p></div>
+      </div>
+    </div>
+
+    <div class="case-study">
+      <span class="case-label">AI-enabled workflow transformation</span>
+      <h3>AI-enabled workflow redesign</h3>
+      <div class="case-cols">
+        <div><div class="case-col-head">Situation</div><p>An organisation needed to reduce manual handling, improve reporting, and strengthen internal decision-making.</p></div>
+        <div><div class="case-col-head">Challenge</div><p>Processes were slow, fragmented, and too dependent on people remembering what came next.</p></div>
+        <div><div class="case-col-head">Outcome</div><p>Better visibility, reduced manual friction, and stronger execution quality across the workflow.</p></div>
+      </div>
+    </div>
+
+  </div></div>
+  <div class="cta-band"><div class="container"><h2>Need a transformation partner that can operate beyond theory?</h2><div class="btn-group" style="justify-content:center;"><span class="btn btn-gold" onclick="showPage('brief')">Submit a Brief</span></div></div></div>
+</div>
+
+<!-- ══════════════ CAPABILITY ══════════════ -->
+<div class="page" id="page-capability">
+  <div class="hero section--dark" style="border-bottom:1px solid rgba(255,255,255,0.1)"><div class="container"><div class="hero-inner">
+    <div class="eyebrow">Capability Pack</div>
+    <h1 style="color:var(--white);">The OJ Solutions capability pack</h1>
+    <p class="lead" style="color:rgba(255,255,255,0.72);">A detailed overview of our transformation focus, services, delivery methodology, and execution model across M&amp;A and enterprise AI.</p>
+  </div></div></div>
+  <div class="section"><div class="container"><div class="two-col">
+    <div>
+      <div class="eyebrow">Why request it</div>
+      <h2 style="margin-bottom:1.5rem;">Built for leaders evaluating execution partners</h2>
+      <ul class="bullet-list"><li>A clear view of what OJ Solutions does</li><li>Our service architecture across M&amp;A and AI</li><li>Our delivery framework</li><li>Our approach to governance and execution</li><li>A stronger picture of fit before a first conversation</li></ul>
+    </div>
+    <div>
+      <h3 style="margin-bottom:1.5rem;">Request the capability pack</h3>
+      <div class="form-grid">
+        <div class="form-field"><label>First name</label><input type="text"></div>
+        <div class="form-field"><label>Last name</label><input type="text"></div>
+        <div class="form-field full"><label>Work email</label><input type="email"></div>
+        <div class="form-field full"><label>Company</label><input type="text"></div>
+        <div class="form-field full"><label>Job title</label><input type="text"></div>
+        <div class="form-field full"><label>What are you exploring?</label><select><option>M&amp;A support</option><option>Enterprise AI</option><option>Both</option></select></div>
+        <div class="form-field full"><span class="btn btn-primary" onclick="showConfirm('cap-confirm')">Send me the capability pack</span></div>
+      </div>
+      <p class="form-note">We will send the pack to your inbox and follow up only where relevant.</p>
+      <div class="confirm-box" id="cap-confirm"><h3 style="margin-bottom:0.5rem;">Your request has been received.</h3><p>The capability pack is on its way to your inbox. If your need is time-sensitive, you can also <span style="color:var(--gold);cursor:pointer;" onclick="showPage('brief')">submit a brief</span> and we will review the context directly.</p></div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- ══════════════ INSIGHTS ══════════════ -->
+<div class="page" id="page-insights">
+  <div class="topbar">Practical thinking on M&A execution, enterprise AI, process redesign, and transformation leadership</div>
+  <div class="hero"><div class="container"><div class="hero-inner">
+    <div class="eyebrow">Insights</div>
+    <h1>Insights for leaders managing change in the real world</h1>
+    <p class="lead">Practical thinking on M&amp;A execution, enterprise AI, process redesign, operational control, and transformation leadership.</p>
+  </div></div></div>
+  <div class="section section--warm"><div class="container">
+    <p style="font-style:italic;font-size:1.05rem;color:var(--ink);max-width:600px;">The best insight is useful, not decorative. Our insights are written for decision-makers who need sharper thinking on what actually affects execution, risk, and value creation inside complex organisations.</p>
+  </div></div>
+  <div class="section"><div class="container">
+    <div class="insight-grid">
+      <div class="insight-card"><div class="insight-cat">M&amp;A Integration</div><h3>Why value leakage starts after the transaction closes</h3></div>
+      <div class="insight-card"><div class="insight-cat">Enterprise AI</div><h3>What most businesses get wrong about AI transformation</h3></div>
+      <div class="insight-card"><div class="insight-cat">Operational Transformation</div><h3>The hidden cost of weak handoffs in complex programmes</h3></div>
+      <div class="insight-card"><div class="insight-cat">Technology Transition</div><h3>Why process clarity matters more than more software</h3></div>
+      <div class="insight-card"><div class="insight-cat">Transformation Leadership</div><h3>How leadership visibility affects transformation speed</h3></div>
+      <div class="insight-card"><div class="insight-cat">Change and Adoption</div><h3>The difference between automation and actual operational improvement</h3></div>
+    </div>
+    <div style="margin-top:3rem;padding:2rem;background:var(--warm-bg);border:1px solid var(--rule);text-align:center;">
+      <p style="font-size:0.82rem;color:var(--ink-light);font-style:italic;">New thinking will appear here shortly. In the meantime, submit a brief if your need is live.</p>
+    </div>
+    <div class="btn-group"><span class="btn btn-primary" onclick="showPage('brief')">Submit a Brief</span></div>
+  </div></div>
+</div>
+
+<!-- ══════════════ ABOUT ══════════════ -->
+<div class="page" id="page-about">
+  <div class="hero"><div class="container"><div class="hero-inner">
+    <div class="eyebrow">About</div>
+    <h1>OJ Solutions exists to help organisations execute change properly</h1>
+    <p class="lead">We work where complexity, risk, and business pressure meet. Our role is to bring structure, accountability, and practical movement to transformation.</p>
+  </div></div></div>
+  <div class="section"><div class="container"><div class="two-col">
+    <div>
+      <p style="margin-bottom:1rem;font-size:1.05rem;font-style:italic;color:var(--ink);">OJ Solutions was built around a simple truth. Important change often breaks down in execution, not intent.</p>
+      <p style="margin-bottom:1rem;">A strategy may be strong. A transaction may be compelling. A transformation case may be well argued. But when ownership is unclear, systems are disconnected, and stakeholders move without structure, value starts leaking fast.</p>
+      <p style="margin-bottom:1rem;">That is why OJ Solutions focuses on the execution layer. We help organisations move through mergers, separations, technology transitions, process redesign, and enterprise AI transformation with more clarity and stronger control.</p>
+      <p>We are delivery-minded by design. That means we care about what happens after the plan is approved, after the decision is made, and after the pressure starts building.</p>
+    </div>
+    <div>
+      <div class="eyebrow">What we believe</div>
+      <div class="belief-block"><h3>Change needs ownership</h3><p>Important work cannot survive vague accountability.</p></div>
+      <div class="belief-block"><h3>Structure creates momentum</h3><p>Teams move faster when the path is clear.</p></div>
+      <div class="belief-block"><h3>Technology must serve the business</h3><p>Systems only matter when they improve real execution.</p></div>
+      <div class="belief-block"><h3>AI should improve operating reality</h3><p>The goal is not more noise. The goal is a more capable organisation.</p></div>
+    </div>
+  </div></div></div>
+  <div class="section section--warm"><div class="container" style="text-align:center;max-width:700px;">
+    <p style="font-family:var(--serif);font-size:1.4rem;font-style:italic;line-height:1.5;color:var(--ink);">"OJ Solutions helps organisations move from complexity to controlled execution."</p>
+    <div class="btn-group" style="justify-content:center;margin-top:2.5rem;"><span class="btn btn-primary" onclick="showPage('brief')">Submit a Brief</span><span class="btn btn-secondary" onclick="showPage('contact')">Contact us</span></div>
+  </div></div>
+</div>
+
+<!-- ══════════════ CONTACT ══════════════ -->
+<div class="page" id="page-contact">
+  <div class="hero"><div class="container"><div class="hero-inner">
+    <div class="eyebrow">Contact</div>
+    <h1>Let's discuss the change in front of you</h1>
+    <p class="lead">If your organisation is navigating integration, separation, operational redesign, or enterprise AI transformation, start the conversation here.</p>
+  </div></div></div>
+  <div class="section"><div class="container"><div class="two-col">
+    <div>
+      <p style="margin-bottom:2rem;">Use this form for project enquiries, capability requests, and leadership conversations around business transformation.</p>
+      <div class="form-grid">
+        <div class="form-field full"><label>Name</label><input type="text"></div>
+        <div class="form-field"><label>Work email</label><input type="email"></div>
+        <div class="form-field"><label>Phone number</label><input type="tel"></div>
+        <div class="form-field"><label>Company</label><input type="text"></div>
+        <div class="form-field"><label>Role</label><input type="text"></div>
+        <div class="form-field full"><label>What are you exploring?</label><select><option>Post-deal integration</option><option>Divestment or carve-out</option><option>Business process optimisation</option><option>Technology transition</option><option>Enterprise AI transformation</option><option>Change and adoption</option><option>Other</option></select></div>
+        <div class="form-field full"><label>Message</label><textarea></textarea></div>
+        <div class="form-field full"><span class="btn btn-primary" onclick="showConfirm('contact-confirm')">Send enquiry</span></div>
+      </div>
+      <div class="confirm-box" id="contact-confirm"><h3 style="margin-bottom:0.5rem;">Thank you.</h3><p>Your enquiry has been received. A member of the OJ Solutions team will review the context and come back with the most relevant next step.</p></div>
+    </div>
+    <div>
+      <div style="padding:2.5rem;background:var(--warm-bg);border:1px solid var(--rule);">
+        <div class="eyebrow">Prefer a direct route?</div>
+        <h3 style="margin-bottom:1rem;">If the matter is commercially sensitive or time-critical, contact the team directly.</h3>
+        <div style="margin-top:1.5rem;"><p style="font-size:0.75rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-light);margin-bottom:0.25rem;">Email</p><p style="color:var(--ink);"><a href="/cdn-cgi/l/email-protection" class="__cf_email__" data-cfemail="3c54595050537c53564f535049485553524f125f5351">[email&#160;protected]</a></p></div>
+        <div style="margin-top:1.25rem;"><p style="font-size:0.75rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--ink-light);margin-bottom:0.25rem;">Phone</p><p style="color:var(--ink);">+44 (0)20 0000 0000</p></div>
+      </div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- ══════════════ BRIEF ══════════════ -->
+<div class="page" id="page-brief">
+  <div class="hero section--accent" style="border-bottom:1px solid rgba(255,255,255,0.1)"><div class="container"><div class="hero-inner">
+    <div class="eyebrow" style="color:var(--gold-light);">Submit a Brief</div>
+    <h1 style="color:var(--white);">Submit a project brief</h1>
+    <p class="lead" style="color:rgba(255,255,255,0.72);">Give us the context. We will review the brief, identify the delivery shape, and come back with the right next step.</p>
+  </div></div></div>
+  <div class="section"><div class="container"><div class="two-col" style="align-items:start;gap:4rem;">
+    <div>
+      <p style="margin-bottom:2rem;">This form helps us understand the business challenge, the operating environment, and the level of complexity involved before the first working conversation.</p>
+      <p style="font-size:0.85rem;color:var(--ink-light);font-style:italic;">The more context you provide, the more useful our response will be.</p>
+      <hr class="rule" style="margin:1.5rem 0;">
+      <p style="font-size:0.85rem;color:var(--ink-light);">We treat submitted information with discretion. Commercially sensitive context can be discussed in follow-up. A concise brief is fine — we can shape the detail together.</p>
+    </div>
+    <div>
+      <div class="form-grid">
+        <div class="form-field"><label>Organisation name</label><input type="text"></div>
+        <div class="form-field"><label>Lead contact</label><input type="text"></div>
+        <div class="form-field"><label>Work email</label><input type="email"></div>
+        <div class="form-field"><label>Phone</label><input type="tel"></div>
+        <div class="form-field full"><label>Project type</label><select><option>M&amp;A integration</option><option>Divestment / carve-out</option><option>Operational transformation</option><option>Technology transition</option><option>Enterprise AI</option><option>Hybrid programme</option></select></div>
+        <div class="form-field full"><label>Business context</label><textarea placeholder="Brief description of your organisation and operating environment"></textarea></div>
+        <div class="form-field full"><label>Current challenge</label><textarea placeholder="What is the primary challenge or pressure you are facing?"></textarea></div>
+        <div class="form-field full"><label>What needs to change</label><textarea placeholder="What does a successful outcome look like?"></textarea></div>
+        <div class="form-field"><label>Desired timeline</label><input type="text" placeholder="e.g. Q3 2026"></div>
+        <div class="form-field"><label>Budget range</label><input type="text" placeholder="Indicative range"></div>
+        <div class="form-field full"><label>Existing systems involved</label><input type="text" placeholder="Any key platforms or tools"></div>
+        <div class="form-field full"><label>Anything else we should know?</label><textarea></textarea></div>
+        <div class="form-field full"><span class="btn btn-primary" onclick="showPage('brief-thanks')">Submit brief</span></div>
+      </div>
+    </div>
+  </div></div></div>
+</div>
+
+<!-- BRIEF THANK YOU -->
+<div class="page" id="page-brief-thanks">
+  <div class="section" style="min-height:60vh;display:flex;align-items:center;">
+    <div class="container" style="text-align:center;max-width:640px;margin:0 auto;">
+      <div class="eyebrow">Brief received</div>
+      <h1 style="margin-bottom:1rem;">Your brief is in</h1>
+      <p style="margin-bottom:2rem;">Thank you for sharing the context. Our team will review the submission and return with the most relevant next step — whether that is a scoping conversation, a capability review, or a more focused discovery session.</p>
+      <div class="btn-group" style="justify-content:center;">
+        <span class="btn btn-primary" onclick="showPage('home')">Back to Home</span>
+        <span class="btn btn-secondary" onclick="showPage('capability')">Request Capability Pack</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════ FOOTER ══════════════ -->
+<footer>
+  <div class="container">
+    <div class="footer-grid">
+      <div>
+        <div class="footer-brand">OJ<span>.</span> Solutions</div>
+        <p class="footer-desc">OJ Solutions helps organisations execute complex change across M&amp;A, operations, systems, and enterprise AI.</p>
+        <div style="margin-top:2rem;"><span class="btn btn-gold" onclick="showPage('brief')">Submit a Brief</span></div>
+      </div>
+      <div class="footer-col">
+        <h4>Services</h4>
+        <ul>
+          <li><a onclick="showPage('service-integration')">Post-Deal Integration</a></li>
+          <li><a onclick="showPage('service-carveout')">Divestments &amp; Carve-Outs</a></li>
+          <li><a onclick="showPage('service-process')">Process Optimisation</a></li>
+          <li><a onclick="showPage('service-tech')">Technology Transition</a></li>
+          <li><a onclick="showPage('service-ai')">Enterprise AI</a></li>
+          <li><a onclick="showPage('service-change')">Change &amp; Adoption</a></li>
+        </ul>
+      </div>
+      <div class="footer-col">
+        <h4>Company</h4>
+        <ul>
+          <li><a onclick="showPage('framework')">Delivery Framework</a></li>
+          <li><a onclick="showPage('cases')">Case Studies</a></li>
+          <li><a onclick="showPage('capability')">Capability Pack</a></li>
+          <li><a onclick="showPage('insights')">Insights</a></li>
+          <li><a onclick="showPage('about')">About</a></li>
+          <li><a onclick="showPage('contact')">Contact</a></li>
+        </ul>
+      </div>
+    </div>
+    <div class="footer-bottom">
+      <p class="footer-closing">Structured delivery for organisations that cannot afford messy execution.</p>
+      <p style="font-size:0.75rem;color:rgba(255,255,255,0.25);">© 2025 OJ Solutions. All rights reserved.</p>
+    </div>
+  </div>
+</footer>
+
+
+<script>
+  /* ── NAV PILL ── */
+  function navPillEnter(tab) {
+    const wrap   = document.getElementById('nav-pill-wrap');
+    const cursor = document.getElementById('nav-pill-cursor');
+    if (!wrap || !cursor) return;
+    const wrapRect = wrap.getBoundingClientRect();
+    const tabRect  = tab.getBoundingClientRect();
+    cursor.style.left    = (tabRect.left - wrapRect.left - 4) + 'px';
+    cursor.style.width   = tabRect.width + 'px';
+    cursor.style.opacity = '1';
+  }
+  function navPillLeave() {
+    const cursor = document.getElementById('nav-pill-cursor');
+    if (cursor) cursor.style.opacity = '0';
+  }
+
+  /* ── PAGE ROUTING ── */
+  function showPage(id) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    const target = document.getElementById('page-' + id);
+    if (target) {
+      target.classList.add('active');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      if (id === 'home') applyLamp(0);
+    }
+  }
+  function showConfirm(id) {
+    const el = document.getElementById(id);
+    if (el) el.classList.add('show');
+  }
+
+  /* ── LAMP SCROLL ──
+     As the user scrolls down the hero, the light dims and dies.
+     Text stays readable throughout. Bar expands then fades.      */
+
+  function applyLamp(p) {
+    // p: 0 = top of page (full light), 1 = scrolled past hero (dark)
+    // Ease-in-out curve
+    const pe = p < 0.5 ? 2*p*p : -1 + (4 - 2*p)*p;
+
+    /* ── BAR ── */
+    const bar = document.getElementById('lamp-bar-el');
+    if (bar) {
+      const baseW = window.innerWidth * 0.40;
+      const maxW  = window.innerWidth * 1.12;
+      bar.style.width   = (baseW + (maxW - baseW) * pe) + 'px';
+      bar.style.opacity = Math.max(0, 1 - pe * 1.05);
+
+      const s1 = Math.round(6  + pe * 44);
+      const s2 = Math.round(22 + pe * 110);
+      const g1 = Math.max(0, 0.9  - pe * 0.9).toFixed(2);
+      const g2 = Math.max(0, 0.35 - pe * 0.35).toFixed(2);
+      bar.style.boxShadow = +g1 > 0.01
+        ? `0 0 ${s1}px 2px rgba(255,255,255,${g1}), 0 0 ${s2}px 6px rgba(255,255,255,${g2})`
+        : 'none';
+    }
+
+    /* ── BEAMS ── */
+    const beamL = document.getElementById('lamp-beam-left-el');
+    const beamR = document.getElementById('lamp-beam-right-el');
+    if (beamL && beamR) {
+      const bw = window.innerWidth * (0.40 + pe * 0.30);
+      const bo = Math.max(0, 1 - pe * 1.1);
+      beamL.style.width   = bw + 'px';
+      beamR.style.width   = bw + 'px';
+      beamL.style.opacity = bo;
+      beamR.style.opacity = bo;
+    }
+
+    /* ── ORB ── */
+    const orb = document.getElementById('lamp-orb-el');
+    if (orb) {
+      orb.style.width   = (44 + pe * 30) + 'rem';
+      orb.style.opacity = Math.max(0, 1 - pe * 1.15);
+    }
+
+    /* ── CORE ── */
+    const core = document.getElementById('lamp-core-el');
+    if (core) {
+      core.style.opacity = Math.max(0, 1 - pe * 1.2);
+    }
+
+    /* ── TEXT: stays visible, gentle upward drift only ── */
+    const lc = document.querySelector('.lamp-content');
+    if (lc) {
+      lc.style.transform = `translateY(${pe * -24}px)`;
+      lc.style.opacity   = Math.max(0.15, 1 - pe * 0.85);
+    }
+
+
+  }
+
+  function updateLamp() {
+    const hero = document.querySelector('#page-home .lamp-hero');
+    if (!hero) return;
+    const p = Math.min(1, window.scrollY / (hero.offsetHeight * 0.75));
+    applyLamp(p);
+  }
+
+  let ticking = false;
+  window.addEventListener('scroll', () => {
+    if (!ticking) {
+      requestAnimationFrame(() => { updateLamp(); ticking = false; });
+      ticking = true;
+    }
+  }, { passive: true });
+
+  window.addEventListener('DOMContentLoaded', () => applyLamp(0));
+</script>
+</body>
+</html>
